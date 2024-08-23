@@ -5,6 +5,5 @@
       "src": "/(.*)",
       "dest": "/api/app.js"
     }
-  ],
-  "files": ["data/**"]
+  ]
 }
