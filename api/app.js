@@ -21,6 +21,7 @@ const db = getFirestore(app)
 const server = express()
 const port = process.env.PORT || 3000
 
+app.use(express.static(path.join(__dirname, '../public')))
 server.use(bodyParser.json())
 server.use(express.static('public'))
 

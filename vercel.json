@@ -9,10 +9,6 @@
     {
       "src": "/(.*)",
       "dest": "/api/app.js"
-    },
-    {
-      "src": "/images/(.*)",
-      "dest": "/public/images/$1"
     }
   ]
 }
