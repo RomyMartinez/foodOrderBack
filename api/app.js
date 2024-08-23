@@ -2,6 +2,8 @@ import fs from 'node:fs/promises'
 import bodyParser from 'body-parser'
 import express from 'express'
 
+import { get } from '@vercel/edge-config'
+
 const app = express()
 
 const port = process.env.PORT || 3000
@@ -31,7 +33,7 @@ app.get('/', (req, res) => {
 
 app.get('/meals', async (req, res) => {
   try {
-    const meals = await fs.readFile('./data/available-meals.json', 'utf8') // Ajuste o caminho se necessário
+    const meals = await get('greeting') // Ajuste o caminho se necessário
     res.json(JSON.parse(meals))
   } catch (error) {
     console.error('Error reading meals data:', error) // Adiciona log para depuração
