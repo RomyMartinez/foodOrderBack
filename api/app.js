@@ -1,29 +1,32 @@
 import fs from 'node:fs/promises'
+
+import bodyParser from 'body-parser'
 import express from 'express'
-import serverless from 'serverless-http'
 
 const app = express()
-const router = express.Router()
 
-router.use(express.json())
+const port = process.env.PORT || 3000
 
-router.use((req, res, next) => {
+app.use(bodyParser.json())
+app.use(express.static('public'))
+
+app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   next()
 })
 
-router.get('/', (req, res) => {
+app.get('/', (req, res) => {
   return res.json({ message: 'Hello World' })
 })
 
-router.get('/meals', async (req, res) => {
+app.get('/meals', async (req, res) => {
   const meals = await fs.readFile('./data/available-meals.json', 'utf8')
   res.json(JSON.parse(meals))
 })
 
-router.post('/orders', async (req, res) => {
+app.post('/orders', async (req, res) => {
   const orderData = req.body.order
 
   if (
@@ -63,7 +66,7 @@ router.post('/orders', async (req, res) => {
   res.status(201).json({ message: 'Order created!' })
 })
 
-router.use((req, res) => {
+app.use((req, res) => {
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200)
   }
@@ -71,8 +74,4 @@ router.use((req, res) => {
   res.status(404).json({ message: 'Not found' })
 })
 
-const handler = serverless(app, {
-  // Optional: configuration options
-})
-
-export const api = handler
+app.listen(3000)
