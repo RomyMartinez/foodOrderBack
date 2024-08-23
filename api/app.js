@@ -1,17 +1,31 @@
-import fs from 'node:fs/promises'
-import bodyParser from 'body-parser'
 import express from 'express'
+import bodyParser from 'body-parser'
+import { initializeApp } from 'firebase/app'
+import { getFirestore, collection, getDocs, addDoc } from 'firebase/firestore'
 
-import { get } from '@vercel/edge-config'
+// Configuração do Firebase
+const firebaseConfig = {
+  apiKey: 'AIzaSyDC1hVhdCDEg10SLCG932baOB5A4xOuI1c',
+  authDomain: 'foodorder-dcd95.firebaseapp.com',
+  projectId: 'foodorder-dcd95',
+  storageBucket: 'foodorder-dcd95.appspot.com',
+  messagingSenderId: '434585938689',
+  appId: '1:434585938689:web:109e773b64a3405b3e8900',
+  measurementId: 'G-EGYXBKVF1Q',
+}
 
-const app = express()
+// Inicializar o Firebase
+const app = initializeApp(firebaseConfig)
+const db = getFirestore(app)
 
+const server = express()
 const port = process.env.PORT || 3000
 
-app.use(bodyParser.json())
-app.use(express.static('public'))
+server.use(bodyParser.json())
+server.use(express.static('public'))
 
-app.use((req, res, next) => {
+// Middleware para CORS
+server.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -19,74 +33,65 @@ app.use((req, res, next) => {
 })
 
 // Middleware para lidar com requisições OPTIONS (preflight)
-app.options('*', (req, res) => {
+server.options('*', (req, res) => {
   res.sendStatus(200)
 })
 
-// Configuração dos middlewares
-app.use(bodyParser.json())
-app.use(express.static('public'))
-
-app.get('/', (req, res) => {
+server.get('/', (req, res) => {
   return res.json({ message: 'Hello World' })
 })
 
-app.get('/meals', async (req, res) => {
+server.get('/meals', async (req, res) => {
   try {
-    const meals = await get('greeting') // Ajuste o caminho se necessário
-    res.json(JSON.parse(meals))
+    const mealsCollection = collection(db, 'meals')
+    const mealsSnapshot = await getDocs(mealsCollection)
+    const mealsList = mealsSnapshot.docs.map((doc) => doc.data())
+    res.json(mealsList)
   } catch (error) {
-    console.error('Error reading meals data:', error) // Adiciona log para depuração
+    console.error('Error reading meals data:', error)
     res.status(500).json({ message: 'Error reading meals data' })
   }
 })
 
-app.post('/orders', async (req, res) => {
+server.post('/orders', async (req, res) => {
   const orderData = req.body.order
 
-  if (
-    orderData === null ||
-    orderData.items === null ||
-    orderData.length === 0
-  ) {
+  if (!orderData || !orderData.items || orderData.items.length === 0) {
     return res.status(400).json({ message: 'Missing data.' })
   }
 
   if (
-    orderData.customer.email === null ||
+    !orderData.customer.email ||
     !orderData.customer.email.includes('@') ||
-    orderData.customer.name === null ||
-    orderData.customer.name.trim() === '' ||
-    orderData.customer.street === null ||
-    orderData.customer.street.trim() === '' ||
-    orderData.customer['postal-code'] === null ||
-    orderData.customer['postal-code'].trim() === '' ||
-    orderData.customer.city === null ||
-    orderData.customer.city.trim() === ''
+    !orderData.customer.name ||
+    !orderData.customer.name.trim() ||
+    !orderData.customer.street ||
+    !orderData.customer.street.trim() ||
+    !orderData.customer['postal-code'] ||
+    !orderData.customer['postal-code'].trim() ||
+    !orderData.customer.city ||
+    !orderData.customer.city.trim()
   ) {
     return res.status(400).json({
       message:
-        'Email, name, street, postal code or city is missing or are incorrect.',
+        'Email, name, street, postal code or city is missing or incorrect.',
     })
   }
 
-  const newOrder = {
-    ...orderData,
-    id: (Math.random() * 1000).toString(),
+  try {
+    const ordersCollection = collection(db, 'orders')
+    const newOrder = {
+      ...orderData,
+      id: (Math.random() * 1000).toString(),
+    }
+    await addDoc(ordersCollection, newOrder)
+    res.status(201).json({ message: 'Order created!' })
+  } catch (error) {
+    console.error('Error creating order:', error)
+    res.status(500).json({ message: 'Error creating order' })
   }
-  const orders = await fs.readFile('./data/orders.json', 'utf8')
-  const allOrders = JSON.parse(orders)
-  allOrders.push(newOrder)
-  await fs.writeFile('./data/orders.json', JSON.stringify(allOrders))
-  res.status(201).json({ message: 'Order created!' })
 })
 
-app.use((req, res) => {
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200)
-  }
-
-  res.status(404).json({ message: 'Not found' })
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`)
 })
-
-app.listen(port)
