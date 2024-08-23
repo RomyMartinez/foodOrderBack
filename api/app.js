@@ -22,7 +22,7 @@ const server = express()
 const port = process.env.PORT || 3000
 
 server.use(bodyParser.json())
-app.use(express.static(path.join(__dirname, 'public')))
+app.use(express.static('public'))
 
 // Middleware para CORS
 server.use((req, res, next) => {
