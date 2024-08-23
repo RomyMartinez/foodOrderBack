@@ -31,8 +31,13 @@ app.get('/', (req, res) => {
 })
 
 app.get('/meals', async (req, res) => {
-  const meals = await fs.readFile('../data/available-meals.json', 'utf8')
-  res.json(JSON.parse(meals))
+  try {
+    const meals = await fs.readFile('./data/available-meals.json', 'utf8') // Ajuste o caminho se necessário
+    res.json(JSON.parse(meals))
+  } catch (error) {
+    console.error('Error reading meals data:', error) // Adiciona log para depuração
+    res.status(500).json({ message: 'Error reading meals data' })
+  }
 })
 
 app.post('/orders', async (req, res) => {
