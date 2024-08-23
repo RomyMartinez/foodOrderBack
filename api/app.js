@@ -12,10 +12,19 @@ app.use(express.static('public'))
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   next()
 })
+
+// Middleware para lidar com requisições OPTIONS (preflight)
+app.options('*', (req, res) => {
+  res.sendStatus(200)
+})
+
+// Configuração dos middlewares
+app.use(bodyParser.json())
+app.use(express.static('public'))
 
 app.get('/', (req, res) => {
   return res.json({ message: 'Hello World' })
