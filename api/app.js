@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 
 app.get('/meals', async (req, res) => {
   try {
-    const meals = await fs.readFile('../data/available-meals.json', 'utf8') // Ajuste o caminho se necessário
+    const meals = await fs.readFile('./data/available-meals.json', 'utf8') // Ajuste o caminho se necessário
     res.json(JSON.parse(meals))
   } catch (error) {
     console.error('Error reading meals data:', error) // Adiciona log para depuração
@@ -73,10 +73,10 @@ app.post('/orders', async (req, res) => {
     ...orderData,
     id: (Math.random() * 1000).toString(),
   }
-  const orders = await fs.readFile('../data/orders.json', 'utf8')
+  const orders = await fs.readFile('./data/orders.json', 'utf8')
   const allOrders = JSON.parse(orders)
   allOrders.push(newOrder)
-  await fs.writeFile('../data/orders.json', JSON.stringify(allOrders))
+  await fs.writeFile('./data/orders.json', JSON.stringify(allOrders))
   res.status(201).json({ message: 'Order created!' })
 })
 
