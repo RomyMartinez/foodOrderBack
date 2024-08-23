@@ -2,7 +2,6 @@ import fs from 'node:fs/promises'
 
 import bodyParser from 'body-parser'
 import express from 'express'
-import cors from 'cors'
 
 const app = express()
 
@@ -11,13 +10,12 @@ const port = process.env.PORT || 3000
 app.use(bodyParser.json())
 app.use(express.static('public'))
 
-app.use(
-  cors({
-    origin: '*', // Permite todas as origens. Para maior segurança, você pode especificar uma lista de origens permitidas.
-    methods: 'GET, POST',
-    allowedHeaders: 'Content-Type',
-  })
-)
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  next()
+})
 
 app.get('/', (req, res) => {
   return res.json({ message: 'Hello World' })
@@ -76,4 +74,4 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Not found' })
 })
 
-app.listen(3000)
+app.listen(port)
