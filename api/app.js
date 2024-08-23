@@ -32,7 +32,7 @@ app.get('/', (req, res) => {
 
 app.get('/meals', async (req, res) => {
   try {
-    const meals = await fs.readFile('./public/available-meals.json', 'utf8') // Ajuste o caminho se necessário
+    const meals = await fs.readFile('../public/available-meals.json', 'utf8') // Ajuste o caminho se necessário
     res.json(JSON.parse(meals))
   } catch (error) {
     console.error('Error reading meals data:', error) // Adiciona log para depuração
